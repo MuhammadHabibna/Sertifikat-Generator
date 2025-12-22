@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Certi-Batch - Bulk Certificate Generator</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <!-- Main Container -->
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <h1 class="logo">Certi-Batch</h1>
+                <p class="tagline">Bulk Certificate Generator</p>
+            </div>
+        </header>
+
+        <!-- Main Content Area -->
+        <div class="main-grid">
+            <!-- Left Panel - Configuration -->
+            <aside class="config-panel">
+                <div class="panel-card">
+                    <!-- Section 1: Upload Assets -->
+                    <section class="config-section">
+                        <h2 class="section-title">1. Upload Assets</h2>
+
+                        <div class="input-group">
+                            <label class="input-label">Certificate Template</label>
+                            <div class="file-upload-zone" id="templateZone">
+                                <input type="file" id="templateInput" accept="image/jpeg,image/png,image/jpg"
+                                    class="file-input-hidden">
+                                <div class="upload-content">
+                                    <svg class="upload-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12">
+                                        </path>
+                                    </svg>
+                                    <p class="upload-text">Click to upload or drag and drop</p>
+                                    <p class="upload-hint">PNG, JPG (max. 10MB)</p>
+                                </div>
+                                <div class="file-selected" id="templateSelected" style="display: none;">
+                                    <svg class="check-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M5 13l4 4L19 7"></path>
+                                    </svg>
+                                    <span class="file-name" id="templateFileName"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="input-group">
+                            <label class="input-label">Names Data (CSV)</label>
+                            <div class="file-upload-zone" id="csvZone">
+                                <input type="file" id="csvInput" accept=".csv" class="file-input-hidden">
+                                <div class="upload-content">
+                                    <svg class="upload-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
+                                        </path>
+                                    </svg>
+                                    <p class="upload-text">Click to upload CSV file</p>
+                                    <p class="upload-hint">CSV with 'name' column</p>
+                                </div>
+                                <div class="file-selected" id="csvSelected" style="display: none;">
+                                    <svg class="check-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M5 13l4 4L19 7"></path>
+                                    </svg>
+                                    <span class="file-name" id="csvFileName"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <div class="divider"></div>
+
+                    <!-- Section 2: Customize Text -->
+                    <section class="config-section">
+                        <h2 class="section-title">2. Customize Text</h2>
+
+                        <div class="input-group">
+                            <label for="sampleText" class="input-label">Sample Text</label>
+                            <input type="text" id="sampleText" value="NAMA PESERTA" class="text-input"
+                                placeholder="Enter sample text">
+                        </div>
+
+                        <div class="input-group" id="columnSelectorGroup" style="display: none;">
+                            <label for="nameColumn" class="input-label">
+                                Name Column
+                                <span class="label-hint">(from CSV)</span>
+                            </label>
+                            <select id="nameColumn" class="select-input">
+                                <option value="">Select column...</option>
+                            </select>
+                        </div>
+
+                        <div class="input-row">
+                            <div class="input-group">
+                                <label for="fontSize" class="input-label">Font Size</label>
+                                <div class="number-input-wrapper">
+                                    <input type="number" id="fontSize" value="40" min="10" max="200" class="text-input">
+                                    <span class="input-suffix">px</span>
+                                </div>
+                            </div>
+
+                            <div class="input-group">
+                                <label for="textColor" class="input-label">Color</label>
+                                <div class="color-input-wrapper">
+                                    <input type="color" id="textColor" value="#000000" class="color-input">
+                                    <span class="color-value" id="colorValue">#000000</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="input-group">
+                            <label for="fontStyle" class="input-label">Font Family</label>
+                            <select id="fontStyle" class="select-input">
+                                <option value="'Inter', sans-serif">Inter</option>
+                                <option value="'Arial', sans-serif">Arial</option>
+                                <option value="'Times New Roman', serif">Times New Roman</option>
+                                <option value="'Georgia', serif">Georgia</option>
+                                <option value="'Courier New', monospace">Courier New</option>
+                            </select>
+                        </div>
+                    </section>
+
+                    <div class="divider"></div>
+
+                    <!-- Section 3: Generate -->
+                    <section class="config-section">
+                        <button id="generateBtn" class="primary-button" disabled>
+                            <svg class="button-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                            </svg>
+                            Generate Certificates
+                        </button>
+                        <div class="progress-container" id="progressContainer" style="display: none;">
+                            <div class="progress-bar-wrapper">
+                                <div class="progress-bar" id="progressBar"></div>
+                            </div>
+                            <div class="progress-text" id="progressText">Preparing...</div>
+                        </div>
+                    </section>
+                </div>
+            </aside>
+
+            <!-- Right Panel - Preview -->
+            <main class="preview-panel">
+                <div class="panel-card">
+                    <div class="preview-header">
+                        <h2 class="preview-title">Live Preview</h2>
+                        <div class="position-badge" id="positionDisplay">Position: X: 0, Y: 0</div>
+                    </div>
+
+                    <div class="canvas-wrapper" id="canvasContainer">
+                        <canvas id="previewCanvas"></canvas>
+                        <div id="draggableText" class="draggable-text" style="display: none;">
+                            NAMA PESERTA
+                        </div>
+                        <div class="canvas-placeholder" id="canvasPlaceholder">
+                            <svg class="placeholder-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z">
+                                </path>
+                            </svg>
+                            <p class="placeholder-text">Upload a template to begin</p>
+                            <p class="placeholder-hint">Your certificate template will appear here</p>
+                        </div>
+                    </div>
+
+                    <div class="preview-footer">
+                        <div class="instruction-steps">
+                            <div class="step-item">
+                                <span class="step-number">1</span>
+                                <span class="step-text">Upload template and CSV</span>
+                            </div>
+                            <div class="step-item">
+                                <span class="step-number">2</span>
+                                <span class="step-text">Drag text to position</span>
+                            </div>
+                            <div class="step-item">
+                                <span class="step-number">3</span>
+                                <span class="step-text">Customize styling</span>
+                            </div>
+                            <div class="step-item">
+                                <span class="step-number">4</span>
+                                <span class="step-text">Generate batch</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- External Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    <script src="script.js"></script>
+</body>
+
+</html>

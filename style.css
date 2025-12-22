@@ -1,0 +1,600 @@
+/* ========================================
+   CERTI-BATCH - MODERN MINIMALIST DESIGN
+   ======================================== */
+
+:root {
+    /* Modern Color Palette */
+    --primary: #6366f1;
+    --primary-hover: #4f46e5;
+    --primary-light: #eef2ff;
+
+    --bg-white: #ffffff;
+    --bg-gray: #f8f9fa;
+    --bg-light: #f1f3f5;
+
+    --text-dark: #1f2937;
+    --text-medium: #6b7280;
+    --text-light: #9ca3af;
+
+    --border-light: #e5e7eb;
+    --border-medium: #d1d5db;
+
+    --success: #10b981;
+    --success-light: #d1fae5;
+
+    /* Spacing */
+    --radius: 12px;
+    --radius-lg: 16px;
+    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: var(--bg-gray);
+    color: var(--text-dark);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* ========================================
+   CONTAINER & LAYOUT
+   ======================================== */
+.container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 32px 24px;
+}
+
+/* ========================================
+   HEADER
+   ======================================== */
+.header {
+    margin-bottom: 40px;
+}
+
+.header-content {
+    max-width: 800px;
+}
+
+.logo {
+    font-size: 32px;
+    font-weight: 700;
+    color: var(--text-dark);
+    margin-bottom: 4px;
+    letter-spacing: -0.02em;
+}
+
+.tagline {
+    font-size: 16px;
+    color: var(--text-medium);
+    font-weight: 400;
+}
+
+/* ========================================
+   MAIN GRID
+   ======================================== */
+.main-grid {
+    display: grid;
+    grid-template-columns: 400px 1fr;
+    gap: 24px;
+    align-items: start;
+}
+
+/* ========================================
+   PANEL CARDS
+   ======================================== */
+.panel-card {
+    background: var(--bg-white);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+    border: 1px solid var(--border-light);
+}
+
+.config-panel .panel-card {
+    position: sticky;
+    top: 32px;
+}
+
+/* ========================================
+   CONFIGURATION SECTIONS
+   ======================================== */
+.config-section {
+    padding: 24px;
+}
+
+.section-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-dark);
+    margin-bottom: 20px;
+}
+
+.divider {
+    height: 1px;
+    background: var(--border-light);
+}
+
+/* ========================================
+   INPUT GROUPS
+   ======================================== */
+.input-group {
+    margin-bottom: 20px;
+}
+
+.input-group:last-child {
+    margin-bottom: 0;
+}
+
+.input-label {
+    display: block;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-dark);
+    margin-bottom: 8px;
+}
+
+.label-hint {
+    font-size: 12px;
+    font-weight: 400;
+    color: var(--text-light);
+    margin-left: 4px;
+}
+
+.input-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+/* ========================================
+   TEXT INPUTS
+   ======================================== */
+.text-input,
+.select-input {
+    width: 100%;
+    padding: 10px 14px;
+    font-size: 14px;
+    font-family: inherit;
+    color: var(--text-dark);
+    background: var(--bg-white);
+    border: 1px solid var(--border-medium);
+    border-radius: var(--radius);
+    transition: all 0.2s ease;
+}
+
+.text-input:focus,
+.select-input:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px var(--primary-light);
+}
+
+.text-input::placeholder {
+    color: var(--text-light);
+}
+
+/* Number Input with Suffix */
+.number-input-wrapper {
+    position: relative;
+}
+
+.number-input-wrapper .text-input {
+    padding-right: 40px;
+}
+
+.input-suffix {
+    position: absolute;
+    right: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 14px;
+    color: var(--text-medium);
+    pointer-events: none;
+}
+
+/* Color Input */
+.color-input-wrapper {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
+.color-input {
+    width: 60px;
+    height: 42px;
+    border: 1px solid var(--border-medium);
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.color-input:hover {
+    border-color: var(--primary);
+}
+
+.color-value {
+    flex: 1;
+    padding: 10px 14px;
+    font-size: 14px;
+    font-family: 'Courier New', monospace;
+    color: var(--text-dark);
+    background: var(--bg-light);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius);
+    text-align: center;
+}
+
+/* ========================================
+   FILE UPLOAD ZONES
+   ======================================== */
+.file-upload-zone {
+    position: relative;
+    border: 2px dashed var(--border-medium);
+    border-radius: var(--radius);
+    padding: 24px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background: var(--bg-gray);
+}
+
+.file-upload-zone:hover {
+    border-color: var(--primary);
+    background: var(--primary-light);
+}
+
+.file-input-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.upload-content,
+.file-selected {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+
+.upload-icon,
+.check-icon {
+    width: 40px;
+    height: 40px;
+    color: var(--text-light);
+}
+
+.file-upload-zone:hover .upload-icon {
+    color: var(--primary);
+}
+
+.file-selected .check-icon {
+    color: var(--success);
+}
+
+.upload-text {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-dark);
+}
+
+.upload-hint {
+    font-size: 12px;
+    color: var(--text-medium);
+}
+
+.file-selected {
+    display: none;
+}
+
+.file-selected.active {
+    display: flex;
+}
+
+.file-upload-zone.has-file {
+    border-color: var(--success);
+    background: var(--success-light);
+    border-style: solid;
+}
+
+.file-name {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-dark);
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* ========================================
+   PRIMARY BUTTON
+   ======================================== */
+.primary-button {
+    width: 100%;
+    padding: 14px 20px;
+    font-size: 16px;
+    font-weight: 600;
+    font-family: inherit;
+    color: white;
+    background: var(--primary);
+    border: none;
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    box-shadow: var(--shadow-sm);
+}
+
+.primary-button:hover:not(:disabled) {
+    background: var(--primary-hover);
+    box-shadow: var(--shadow-md);
+    transform: translateY(-1px);
+}
+
+.primary-button:active:not(:disabled) {
+    transform: translateY(0);
+}
+
+.primary-button:disabled {
+    background: var(--border-medium);
+    color: var(--text-light);
+    cursor: not-allowed;
+    box-shadow: none;
+}
+
+.button-icon {
+    width: 20px;
+    height: 20px;
+}
+
+/* ========================================
+   PROGRESS BAR
+   ======================================== */
+.progress-container {
+    margin-top: 16px;
+}
+
+.progress-bar-wrapper {
+    width: 100%;
+    height: 8px;
+    background: var(--bg-light);
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 8px;
+}
+
+.progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, var(--primary) 0%, var(--primary-hover) 100%);
+    width: 0%;
+    transition: width 0.3s ease;
+    border-radius: 4px;
+}
+
+.progress-text {
+    font-size: 13px;
+    color: var(--text-medium);
+    text-align: center;
+}
+
+
+/* ========================================
+   PREVIEW PANEL
+   ======================================== */
+.preview-header {
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--border-light);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.preview-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text-dark);
+}
+
+.position-badge {
+    font-size: 13px;
+    font-family: 'Courier New', monospace;
+    color: var(--text-medium);
+    background: var(--bg-light);
+    padding: 6px 12px;
+    border-radius: 6px;
+}
+
+/* ========================================
+   CANVAS WRAPPER
+   ======================================== */
+.canvas-wrapper {
+    position: relative;
+    min-height: 500px;
+    padding: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-gray);
+}
+
+#previewCanvas {
+    max-width: 100%;
+    max-height: 600px;
+    display: block;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-lg);
+}
+
+.canvas-placeholder {
+    text-align: center;
+    padding: 60px 20px;
+}
+
+.placeholder-icon {
+    width: 64px;
+    height: 64px;
+    color: var(--text-light);
+    margin: 0 auto 16px;
+}
+
+.placeholder-text {
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--text-medium);
+    margin-bottom: 4px;
+}
+
+.placeholder-hint {
+    font-size: 14px;
+    color: var(--text-light);
+}
+
+/* ========================================
+   DRAGGABLE TEXT
+   ======================================== */
+.draggable-text {
+    position: absolute;
+    color: #000000;
+    font-size: 40px;
+    font-family: 'Inter', sans-serif;
+    cursor: move;
+    user-select: none;
+    padding: 8px 12px;
+    background: rgba(99, 102, 241, 0.1);
+    border: 2px solid transparent;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+    z-index: 100;
+}
+
+.draggable-text:hover,
+.draggable-text.dragging {
+    border-color: var(--primary);
+    background: rgba(99, 102, 241, 0.15);
+    box-shadow: 0 0 0 3px var(--primary-light);
+}
+
+/* ========================================
+   PREVIEW FOOTER
+   ======================================== */
+.preview-footer {
+    padding: 20px 24px;
+    border-top: 1px solid var(--border-light);
+    background: var(--bg-gray);
+    border-bottom-left-radius: var(--radius-lg);
+    border-bottom-right-radius: var(--radius-lg);
+}
+
+.instruction-steps {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+}
+
+.step-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.step-number {
+    width: 24px;
+    height: 24px;
+    background: var(--primary);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 600;
+    flex-shrink: 0;
+}
+
+.step-text {
+    font-size: 13px;
+    color: var(--text-medium);
+}
+
+/* ========================================
+   RESPONSIVE DESIGN
+   ======================================== */
+@media (max-width: 1024px) {
+    .main-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .config-panel .panel-card {
+        position: static;
+    }
+
+    .instruction-steps {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 640px) {
+    .container {
+        padding: 16px;
+    }
+
+    .header {
+        margin-bottom: 24px;
+    }
+
+    .logo {
+        font-size: 24px;
+    }
+
+    .config-section {
+        padding: 20px;
+    }
+
+    .input-row {
+        grid-template-columns: 1fr;
+    }
+
+    .instruction-steps {
+        grid-template-columns: 1fr;
+    }
+
+    .preview-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
+}
+
+/* ========================================
+   UTILITY ANIMATIONS
+   ======================================== */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.panel-card {
+    animation: fadeIn 0.3s ease-out;
+}
