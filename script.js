@@ -400,6 +400,11 @@ async function generateBatch() {
     elements.progressContainer.style.display = 'block';
     updateProgress(0, state.csvData.length, 'Initializing');
 
+    const zip = new JSZip();
+    const fontSize = parseInt(elements.fontSize.value);
+    const fontFamily = elements.fontStyle.value;
+    const textColor = elements.textColor.value;
+
     // CALCULATE SCALE FACTOR USING VISUAL DIMENSIONS (getBoundingClientRect)
     const nativeWidth = state.templateImage.naturalWidth;
     const nativeHeight = state.templateImage.naturalHeight;
@@ -429,6 +434,12 @@ async function generateBatch() {
 
     console.log('Text Center on Preview Canvas:', textCenterX, 'x', textCenterY);
 
+    // PERFORMANCE: Create ONE reusable canvas (don't recreate each iteration)
+    const finalCanvas = document.createElement('canvas');
+    finalCanvas.width = nativeWidth;
+    finalCanvas.height = nativeHeight;
+    const fCtx = finalCanvas.getContext('2d');
+
     // Process each name from CSV using selected column
     for (let i = 0; i < state.csvData.length; i++) {
         const record = state.csvData[i];
@@ -441,14 +452,14 @@ async function generateBatch() {
             continue;
         }
 
-        // Update progress
+        // Update progress BEFORE processing (so UI updates)
         updateProgress(i + 1, state.csvData.length, 'Processing');
 
-        // Create certificate at FULL NATIVE RESOLUTION
-        const finalCanvas = document.createElement('canvas');
-        finalCanvas.width = nativeWidth;
-        finalCanvas.height = nativeHeight;
-        const fCtx = finalCanvas.getContext('2d');
+        // PERFORMANCE: Allow UI to breathe (longer delay for high-res images)
+        await sleep(100);
+
+        // PERFORMANCE: Clear canvas instead of creating new one
+        fCtx.clearRect(0, 0, nativeWidth, nativeHeight);
 
         // 1. Draw the high-res template at native resolution
         fCtx.drawImage(state.templateImage, 0, 0, nativeWidth, nativeHeight);
@@ -457,8 +468,6 @@ async function generateBatch() {
         const finalFontSize = Math.round(fontSize * scaleFactor);
         const finalX = textCenterX * scaleFactor;
         const finalY = textCenterY * scaleFactor;
-
-        console.log(`Certificate ${i + 1}: Final Position`, finalX, 'x', finalY);
 
         // 3. CRITICAL: Set anchor point to CENTER + MIDDLE for perfect alignment
         fCtx.textAlign = 'center';
@@ -469,7 +478,7 @@ async function generateBatch() {
         // 4. Draw the text at SCALED CENTER coordinates
         fCtx.fillText(name, finalX, finalY);
 
-        // Convert to blob with proper MIME type and quality
+        // PERFORMANCE: Convert to blob (memory-efficient, not base64)
         const blob = await new Promise(resolve => {
             finalCanvas.toBlob(resolve, 'image/png', 1.0);
         });
@@ -481,20 +490,21 @@ async function generateBatch() {
         // Add to ZIP
         zip.file(filename, blob);
 
-        // Small delay to prevent UI freeze
-        await sleep(10);
+        console.log(`✓ Certificate ${i + 1}/${state.csvData.length} added`);
     }
 
-    // Generate and download ZIP with proper MIME type
+    // Generate and download ZIP with STREAMING for memory efficiency
     elements.progressText.textContent = 'Creating ZIP file...';
 
     try {
+        // PERFORMANCE: Use streamFiles to reduce peak memory
         const content = await zip.generateAsync({
             type: 'blob',
             compression: 'DEFLATE',
             compressionOptions: {
                 level: 6
-            }
+            },
+            streamFiles: true  // CRITICAL: Prevents memory exhaustion
         });
 
         // Use FileSaver.js for safer download
