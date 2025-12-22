@@ -11,7 +11,8 @@ const state = {
     selectedColumn: '',
     textPosition: { x: 0, y: 0 },
     isDragging: false,
-    dragOffset: { x: 0, y: 0 }
+    dragOffset: { x: 0, y: 0 },
+    fontSizeScaleFactor: 0.01  // Font size as fraction of canvas width
 };
 
 // DOM Elements
@@ -162,6 +163,9 @@ function handleTemplateUpload(e) {
             elements.templateSelected.style.display = 'flex';
             elements.templateFileName.textContent = file.name;
 
+            // Initialize font scaling factor with current font size
+            updateDraggableText();
+
             checkReadyToGenerate();
         };
         img.src = event.target.result;
@@ -248,12 +252,19 @@ function handleColumnChange(e) {
 // ========================================
 function updateDraggableText() {
     const text = elements.sampleText.value || 'NAMA PESERTA';
-    const fontSize = elements.fontSize.value + 'px';
+    const fontSizeInput = parseInt(elements.fontSize.value);
     const color = elements.textColor.value;
     const fontFamily = elements.fontStyle.value;
 
+    // Calculate font size scaling factor based on preview canvas width
+    if (elements.canvas.width > 0) {
+        state.fontSizeScaleFactor = fontSizeInput / elements.canvas.width;
+    }
+
+    // Apply font size to draggable text (for preview)
+    const previewFontSize = fontSizeInput + 'px';
     elements.draggableText.textContent = text;
-    elements.draggableText.style.fontSize = fontSize;
+    elements.draggableText.style.fontSize = previewFontSize;
     elements.draggableText.style.color = color;
     elements.draggableText.style.fontFamily = fontFamily;
 }
@@ -390,21 +401,30 @@ async function generateBatch() {
         // Update progress
         updateProgress(i + 1, state.csvData.length, 'Processing');
 
-        // Create certificate
+        // Create certificate at FULL RESOLUTION
         const tempCanvas = document.createElement('canvas');
-        tempCanvas.width = elements.canvas.width;
-        tempCanvas.height = elements.canvas.height;
+        tempCanvas.width = state.templateImage.naturalWidth || state.templateImage.width;
+        tempCanvas.height = state.templateImage.naturalHeight || state.templateImage.height;
         const tempCtx = tempCanvas.getContext('2d');
 
-        // Draw template
+        // Draw template at full resolution
         tempCtx.drawImage(state.templateImage, 0, 0);
 
-        // Draw name
-        tempCtx.font = `${fontSize}px ${fontFamily}`;
+        // Calculate scaled font size for full resolution
+        const fullResolutionFontSize = Math.round(tempCanvas.width * state.fontSizeScaleFactor);
+
+        // Calculate scaled position for full resolution
+        const scaleX = tempCanvas.width / elements.canvas.width;
+        const scaleY = tempCanvas.height / elements.canvas.height;
+        const scaledX = actualX * scaleX;
+        const scaledY = actualY * scaleY;
+
+        // Draw name with properly scaled font and position
+        tempCtx.font = `${fullResolutionFontSize}px ${fontFamily}`;
         tempCtx.fillStyle = textColor;
         tempCtx.textAlign = 'left';
         tempCtx.textBaseline = 'top';
-        tempCtx.fillText(name, actualX, actualY);
+        tempCtx.fillText(name, scaledX, scaledY);
 
         // Convert to blob with proper MIME type and quality
         const blob = await new Promise(resolve => {
