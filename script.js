@@ -300,7 +300,12 @@ function updateDraggableTextPosition() {
     elements.draggableText.style.left = state.textPosition.x + 'px';
     elements.draggableText.style.top = state.textPosition.y + 'px';
 
-    elements.positionDisplay.textContent = `Position: X: ${Math.round(state.textPosition.x)}, Y: ${Math.round(state.textPosition.y)}`;
+    // Calculate CENTER coordinates for display (used in generation)
+    const textRect = elements.draggableText.getBoundingClientRect();
+    const centerX = state.textPosition.x + (textRect.width / 2);
+    const centerY = state.textPosition.y + (textRect.height / 2);
+
+    elements.positionDisplay.textContent = `Position: X: ${Math.round(centerX)}, Y: ${Math.round(centerY)}`;
 }
 
 // ========================================
@@ -395,31 +400,34 @@ async function generateBatch() {
     elements.progressContainer.style.display = 'block';
     updateProgress(0, state.csvData.length, 'Initializing');
 
-    const zip = new JSZip();
-    const fontSize = parseInt(elements.fontSize.value);
-    const fontFamily = elements.fontStyle.value;
-    const textColor = elements.textColor.value;
-
-    // Calculate actual canvas position from draggable text position
-    const canvasRect = elements.canvas.getBoundingClientRect();
-    const containerRect = elements.canvasContainer.getBoundingClientRect();
-    const canvasScale = elements.canvas.width / canvasRect.width;
-
-    // CALCULATE SCALE FACTOR ONCE BEFORE LOOP
+    // CALCULATE SCALE FACTOR USING VISUAL DIMENSIONS (getBoundingClientRect)
     const nativeWidth = state.templateImage.naturalWidth;
     const nativeHeight = state.templateImage.naturalHeight;
-    const previewWidth = elements.canvas.width;
-    const previewHeight = elements.canvas.height;
 
-    // THE GOLDEN RATIO: How much bigger is the real image vs preview?
-    const scaleFactor = nativeWidth / previewWidth;
+    // Use visual bounding rect for accurate scaling (accounts for CSS)
+    const canvasRect = elements.canvas.getBoundingClientRect();
+    const previewVisualWidth = canvasRect.width;
+    const previewVisualHeight = canvasRect.height;
 
-    console.log('=== SCALE FACTOR CALCULATION ===');
-    console.log('Native Width:', nativeWidth);
-    console.log('Preview Width:', previewWidth);
+    // THE GOLDEN RATIO: Native vs Visual
+    const scaleFactor = nativeWidth / previewVisualWidth;
+
+    console.log('=== PRECISE SCALE FACTOR CALCULATION ===');
+    console.log('Native Dimensions:', nativeWidth, 'x', nativeHeight);
+    console.log('Visual Preview (getBoundingClientRect):', previewVisualWidth, 'x', previewVisualHeight);
     console.log('Scale Factor:', scaleFactor);
     console.log('User Font Size:', fontSize);
-    console.log('Calculated Final Font:', Math.round(fontSize * scaleFactor));
+    console.log('Final Font Size:', Math.round(fontSize * scaleFactor));
+
+    // Calculate CENTER coordinates from draggable text position
+    const textRect = elements.draggableText.getBoundingClientRect();
+    const containerRect = elements.canvasContainer.getBoundingClientRect();
+
+    // Get center of draggable text relative to canvas
+    const textCenterX = textRect.left + (textRect.width / 2) - canvasRect.left;
+    const textCenterY = textRect.top + (textRect.height / 2) - canvasRect.top;
+
+    console.log('Text Center on Preview Canvas:', textCenterX, 'x', textCenterY);
 
     // Process each name from CSV using selected column
     for (let i = 0; i < state.csvData.length; i++) {
@@ -445,20 +453,20 @@ async function generateBatch() {
         // 1. Draw the high-res template at native resolution
         fCtx.drawImage(state.templateImage, 0, 0, nativeWidth, nativeHeight);
 
-        // 2. Calculate SCALED font size and position
-        const actualX = (state.textPosition.x - (containerRect.width - canvasRect.width) / 2) * canvasScale;
-        const actualY = (state.textPosition.y - (containerRect.height - canvasRect.height) / 2) * canvasScale;
+        // 2. Calculate SCALED font size and CENTER coordinates
         const finalFontSize = Math.round(fontSize * scaleFactor);
-        const finalX = actualX * scaleFactor;
-        const finalY = actualY * scaleFactor;
+        const finalX = textCenterX * scaleFactor;
+        const finalY = textCenterY * scaleFactor;
 
-        // 3. Apply the SCALED font size
+        console.log(`Certificate ${i + 1}: Final Position`, finalX, 'x', finalY);
+
+        // 3. CRITICAL: Set anchor point to CENTER + MIDDLE for perfect alignment
+        fCtx.textAlign = 'center';
+        fCtx.textBaseline = 'middle';
         fCtx.font = `${finalFontSize}px ${fontFamily}`;
         fCtx.fillStyle = textColor;
-        fCtx.textAlign = 'left';
-        fCtx.textBaseline = 'top';
 
-        // 4. Draw the text at SCALED coordinates
+        // 4. Draw the text at SCALED CENTER coordinates
         fCtx.fillText(name, finalX, finalY);
 
         // Convert to blob with proper MIME type and quality
