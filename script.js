@@ -139,12 +139,29 @@ function handleTemplateUpload(e) {
         img.onload = function () {
             state.templateImage = img;
 
-            // Set canvas size to match image
-            elements.canvas.width = img.width;
-            elements.canvas.height = img.height;
+            // Calculate preview canvas size (scale down if needed for display)
+            const maxPreviewWidth = 800; // Maximum preview width
+            const nativeWidth = img.naturalWidth;
+            const nativeHeight = img.naturalHeight;
 
-            // Draw template on canvas
-            ctx.drawImage(img, 0, 0);
+            let previewWidth, previewHeight;
+            if (nativeWidth > maxPreviewWidth) {
+                // Scale down for preview
+                const scale = maxPreviewWidth / nativeWidth;
+                previewWidth = maxPreviewWidth;
+                previewHeight = Math.round(nativeHeight * scale);
+            } else {
+                // Use native size if smaller than max
+                previewWidth = nativeWidth;
+                previewHeight = nativeHeight;
+            }
+
+            // Set preview canvas size (for display)
+            elements.canvas.width = previewWidth;
+            elements.canvas.height = previewHeight;
+
+            // Draw template on preview canvas (scaled down)
+            ctx.drawImage(img, 0, 0, previewWidth, previewHeight);
 
             // Hide placeholder, show canvas and draggable text
             elements.canvasPlaceholder.style.display = 'none';
@@ -165,6 +182,11 @@ function handleTemplateUpload(e) {
 
             // Initialize font scaling factor with current font size
             updateDraggableText();
+
+            // Log dimensions for debugging
+            console.log('Native Image:', nativeWidth, 'x', nativeHeight);
+            console.log('Preview Canvas:', previewWidth, 'x', previewHeight);
+            console.log('Scale Factor:', nativeWidth / previewWidth);
 
             checkReadyToGenerate();
         };
@@ -383,8 +405,21 @@ async function generateBatch() {
     const containerRect = elements.canvasContainer.getBoundingClientRect();
     const canvasScale = elements.canvas.width / canvasRect.width;
 
-    const actualX = (state.textPosition.x - (containerRect.width - canvasRect.width) / 2) * canvasScale;
-    const actualY = (state.textPosition.y - (containerRect.height - canvasRect.height) / 2) * canvasScale;
+    // CALCULATE SCALE FACTOR ONCE BEFORE LOOP
+    const nativeWidth = state.templateImage.naturalWidth;
+    const nativeHeight = state.templateImage.naturalHeight;
+    const previewWidth = elements.canvas.width;
+    const previewHeight = elements.canvas.height;
+
+    // THE GOLDEN RATIO: How much bigger is the real image vs preview?
+    const scaleFactor = nativeWidth / previewWidth;
+
+    console.log('=== SCALE FACTOR CALCULATION ===');
+    console.log('Native Width:', nativeWidth);
+    console.log('Preview Width:', previewWidth);
+    console.log('Scale Factor:', scaleFactor);
+    console.log('User Font Size:', fontSize);
+    console.log('Calculated Final Font:', Math.round(fontSize * scaleFactor));
 
     // Process each name from CSV using selected column
     for (let i = 0; i < state.csvData.length; i++) {
@@ -401,34 +436,34 @@ async function generateBatch() {
         // Update progress
         updateProgress(i + 1, state.csvData.length, 'Processing');
 
-        // Create certificate at FULL RESOLUTION
-        const tempCanvas = document.createElement('canvas');
-        tempCanvas.width = state.templateImage.naturalWidth || state.templateImage.width;
-        tempCanvas.height = state.templateImage.naturalHeight || state.templateImage.height;
-        const tempCtx = tempCanvas.getContext('2d');
+        // Create certificate at FULL NATIVE RESOLUTION
+        const finalCanvas = document.createElement('canvas');
+        finalCanvas.width = nativeWidth;
+        finalCanvas.height = nativeHeight;
+        const fCtx = finalCanvas.getContext('2d');
 
-        // Draw template at full resolution
-        tempCtx.drawImage(state.templateImage, 0, 0);
+        // 1. Draw the high-res template at native resolution
+        fCtx.drawImage(state.templateImage, 0, 0, nativeWidth, nativeHeight);
 
-        // Calculate scaled font size for full resolution
-        const fullResolutionFontSize = Math.round(tempCanvas.width * state.fontSizeScaleFactor);
+        // 2. Calculate SCALED font size and position
+        const actualX = (state.textPosition.x - (containerRect.width - canvasRect.width) / 2) * canvasScale;
+        const actualY = (state.textPosition.y - (containerRect.height - canvasRect.height) / 2) * canvasScale;
+        const finalFontSize = Math.round(fontSize * scaleFactor);
+        const finalX = actualX * scaleFactor;
+        const finalY = actualY * scaleFactor;
 
-        // Calculate scaled position for full resolution
-        const scaleX = tempCanvas.width / elements.canvas.width;
-        const scaleY = tempCanvas.height / elements.canvas.height;
-        const scaledX = actualX * scaleX;
-        const scaledY = actualY * scaleY;
+        // 3. Apply the SCALED font size
+        fCtx.font = `${finalFontSize}px ${fontFamily}`;
+        fCtx.fillStyle = textColor;
+        fCtx.textAlign = 'left';
+        fCtx.textBaseline = 'top';
 
-        // Draw name with properly scaled font and position
-        tempCtx.font = `${fullResolutionFontSize}px ${fontFamily}`;
-        tempCtx.fillStyle = textColor;
-        tempCtx.textAlign = 'left';
-        tempCtx.textBaseline = 'top';
-        tempCtx.fillText(name, scaledX, scaledY);
+        // 4. Draw the text at SCALED coordinates
+        fCtx.fillText(name, finalX, finalY);
 
         // Convert to blob with proper MIME type and quality
         const blob = await new Promise(resolve => {
-            tempCanvas.toBlob(resolve, 'image/png', 1.0);
+            finalCanvas.toBlob(resolve, 'image/png', 1.0);
         });
 
         // Strict filename sanitization
