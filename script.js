@@ -13,7 +13,8 @@ const state = {
     isDragging: false,
     dragOffset: { x: 0, y: 0 },
     fontSizeScaleFactor: 0.01,  // Font size as fraction of canvas width
-    exportResolution: 'high'  // 'high' or 'low'
+    exportResolution: 'high',  // 'high' or 'low'
+    batchStartTime: null  // Track when batch generation starts
 };
 
 // DOM Elements
@@ -417,12 +418,26 @@ function sanitizeFilename(name) {
 }
 
 // ========================================
-// UPDATE PROGRESS BAR
+// UPDATE PROGRESS BAR WITH ETA
 // ========================================
-function updateProgress(current, total, message) {
+function updateProgress(current, total, message, startTime = null) {
     const percentage = Math.round((current / total) * 100);
     elements.progressBar.style.width = percentage + '%';
-    elements.progressText.textContent = `${message} (${current}/${total} - ${percentage}%)`;
+
+    // Base status: "Processing High-Res (25/60 - 42%)"
+    let statusText = `${message} (${current}/${total} - ${percentage}%)`;
+
+    // Add ETA if start time provided and we have processed at least 2 items
+    if (startTime && current >= 2) {
+        const elapsed = Date.now() - startTime;
+        const avgTimePerItem = elapsed / current;
+        const remaining = total - current;
+        const estimatedRemaining = avgTimePerItem * remaining;
+
+        statusText += ` · Estimated time: ${formatTime(estimatedRemaining)}`;
+    }
+
+    elements.progressText.textContent = statusText;
 }
 
 // ========================================
@@ -441,7 +456,10 @@ async function generateBatch() {
 
     elements.generateBtn.disabled = true;
     elements.progressContainer.style.display = 'block';
-    updateProgress(0, state.csvData.length, 'Initializing');
+
+    // Track start time for ETA calculation
+    state.batchStartTime = Date.now();
+    updateProgress(0, state.csvData.length, 'Initializing', null);
 
     const zip = new JSZip();
     const fontSize = parseInt(elements.fontSize.value);
@@ -503,7 +521,7 @@ async function generateBatch() {
         }
 
         // Update progress BEFORE processing (so UI updates)
-        updateProgress(i + 1, state.csvData.length, `Processing ${exportMode}`);
+        updateProgress(i + 1, state.csvData.length, `Processing ${exportMode}`, state.batchStartTime);
 
         // PERFORMANCE: Allow UI to breathe (longer delay for high-res images)
         await sleep(100);
@@ -564,12 +582,13 @@ async function generateBatch() {
 
         // Success feedback
         elements.progressBar.style.width = '100%';
-        elements.progressText.textContent = `✓ Success! ${state.csvData.length} certificates generated`;
+        elements.progressText.textContent = `✓ Success! ${state.csvData.length} certificates generated · ZIP downloaded`;
 
         setTimeout(() => {
             elements.progressContainer.style.display = 'none';
             elements.progressBar.style.width = '0%';
             elements.generateBtn.disabled = false;
+            state.batchStartTime = null;  // Clear start time
         }, 3000);
 
     } catch (error) {
@@ -586,6 +605,26 @@ function checkReadyToGenerate() {
     if (state.templateImage && state.csvData.length > 0 && state.selectedColumn) {
         elements.generateBtn.disabled = false;
     }
+}
+
+// Format milliseconds to human-readable time string
+function formatTime(ms) {
+    const totalSeconds = Math.floor(ms / 1000);
+
+    if (totalSeconds < 60) {
+        return `~${totalSeconds} second${totalSeconds !== 1 ? 's' : ''}`;
+    }
+
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+
+    if (minutes < 60) {
+        return seconds > 0 ? `~${minutes}m ${seconds}s` : `~${minutes}m`;
+    }
+
+    const hours = Math.floor(minutes / 60);
+    const remainingMinutes = minutes % 60;
+    return `~${hours}h ${remainingMinutes}m`;
 }
 
 function sleep(ms) {
