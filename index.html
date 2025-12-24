@@ -133,7 +133,34 @@
 
                     <div class="divider"></div>
 
-                    <!-- Section 3: Generate -->
+                    <!-- Section 3: Export Settings -->
+                    <section class="config-section">
+                        <h2 class="section-title">3. Export Settings</h2>
+
+                        <div class="input-group">
+                            <label class="input-label">
+                                Export Resolution
+                                <span class="info-tooltip"
+                                    title="Low-Res is recommended for 100+ certificates to prevent browser lag.">ⓘ</span>
+                            </label>
+                            <div class="segmented-control">
+                                <input type="radio" id="resHigh" name="resolution" value="high" checked>
+                                <label for="resHigh" class="segment-label">
+                                    <span class="segment-title">Print Quality</span>
+                                    <span class="segment-subtitle">Original Size</span>
+                                </label>
+                                <input type="radio" id="resLow" name="resolution" value="low">
+                                <label for="resLow" class="segment-label">
+                                    <span class="segment-title">Web Quality</span>
+                                    <span class="segment-subtitle">Compressed/Fast</span>
+                                </label>
+                            </div>
+                        </div>
+                    </section>
+
+                    <div class="divider"></div>
+
+                    <!-- Section 4: Generate -->
                     <section class="config-section">
                         <button id="generateBtn" class="primary-button" disabled>
                             <svg class="button-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">

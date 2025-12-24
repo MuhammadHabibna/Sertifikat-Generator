@@ -12,7 +12,8 @@ const state = {
     textPosition: { x: 0, y: 0 },
     isDragging: false,
     dragOffset: { x: 0, y: 0 },
-    fontSizeScaleFactor: 0.01  // Font size as fraction of canvas width
+    fontSizeScaleFactor: 0.01,  // Font size as fraction of canvas width
+    exportResolution: 'high'  // 'high' or 'low'
 };
 
 // DOM Elements
@@ -34,6 +35,9 @@ const elements = {
     textColor: document.getElementById('textColor'),
     fontStyle: document.getElementById('fontStyle'),
     colorValue: document.getElementById('colorValue'),
+
+    resHigh: document.getElementById('resHigh'),
+    resLow: document.getElementById('resLow'),
 
     generateBtn: document.getElementById('generateBtn'),
     canvas: document.getElementById('previewCanvas'),
@@ -66,6 +70,10 @@ function setupEventListeners() {
     elements.textColor.addEventListener('input', handleColorChange);
     elements.fontStyle.addEventListener('change', updateDraggableText);
     elements.nameColumn.addEventListener('change', handleColumnChange);
+
+    // Resolution selection
+    elements.resHigh.addEventListener('change', handleResolutionChange);
+    elements.resLow.addEventListener('change', handleResolutionChange);
 
     // Drag and drop for text positioning
     elements.draggableText.addEventListener('mousedown', startDrag);
@@ -270,6 +278,41 @@ function handleColumnChange(e) {
 }
 
 // ========================================
+// RESOLUTION SELECTION
+// ========================================
+function handleResolutionChange(e) {
+    state.exportResolution = e.target.value;
+    console.log('Export resolution changed to:', state.exportResolution);
+}
+
+// Calculate target dimensions based on resolution selection
+function getTargetDimensions() {
+    if (!state.templateImage) {
+        return { width: 0, height: 0 };
+    }
+
+    const nativeWidth = state.templateImage.naturalWidth;
+    const nativeHeight = state.templateImage.naturalHeight;
+
+    if (state.exportResolution === 'high') {
+        // High-Res: Use original dimensions
+        return { width: nativeWidth, height: nativeHeight };
+    } else {
+        // Low-Res: Max width 1280px, scale height proportionally
+        const maxWidth = 1280;
+        if (nativeWidth <= maxWidth) {
+            // Already smaller than max, use native size
+            return { width: nativeWidth, height: nativeHeight };
+        } else {
+            // Scale down to max width
+            const scale = maxWidth / nativeWidth;
+            const scaledHeight = Math.round(nativeHeight * scale);
+            return { width: maxWidth, height: scaledHeight };
+        }
+    }
+}
+
+// ========================================
 // DRAGGABLE TEXT CONTROLS
 // ========================================
 function updateDraggableText() {
@@ -406,19 +449,22 @@ async function generateBatch() {
     const textColor = elements.textColor.value;
 
     // CALCULATE SCALE FACTOR USING VISUAL DIMENSIONS (getBoundingClientRect)
-    const nativeWidth = state.templateImage.naturalWidth;
-    const nativeHeight = state.templateImage.naturalHeight;
+    // Get target dimensions based on resolution selection
+    const targetDims = getTargetDimensions();
+    const targetWidth = targetDims.width;
+    const targetHeight = targetDims.height;
 
     // Use visual bounding rect for accurate scaling (accounts for CSS)
     const canvasRect = elements.canvas.getBoundingClientRect();
     const previewVisualWidth = canvasRect.width;
     const previewVisualHeight = canvasRect.height;
 
-    // THE GOLDEN RATIO: Native vs Visual
-    const scaleFactor = nativeWidth / previewVisualWidth;
+    // THE GOLDEN RATIO: Target vs Visual
+    const scaleFactor = targetWidth / previewVisualWidth;
 
     console.log('=== PRECISE SCALE FACTOR CALCULATION ===');
-    console.log('Native Dimensions:', nativeWidth, 'x', nativeHeight);
+    console.log('Export Mode:', state.exportResolution.toUpperCase());
+    console.log('Target Dimensions:', targetWidth, 'x', targetHeight);
     console.log('Visual Preview (getBoundingClientRect):', previewVisualWidth, 'x', previewVisualHeight);
     console.log('Scale Factor:', scaleFactor);
     console.log('User Font Size:', fontSize);
@@ -436,9 +482,13 @@ async function generateBatch() {
 
     // PERFORMANCE: Create ONE reusable canvas (don't recreate each iteration)
     const finalCanvas = document.createElement('canvas');
-    finalCanvas.width = nativeWidth;
-    finalCanvas.height = nativeHeight;
+    finalCanvas.width = targetWidth;
+    finalCanvas.height = targetHeight;
     const fCtx = finalCanvas.getContext('2d');
+
+    // Compression quality based on resolution
+    const compressionQuality = state.exportResolution === 'low' ? 0.7 : 1.0;
+    const exportMode = state.exportResolution === 'high' ? 'High-Res' : 'Low-Res';
 
     // Process each name from CSV using selected column
     for (let i = 0; i < state.csvData.length; i++) {
@@ -453,16 +503,16 @@ async function generateBatch() {
         }
 
         // Update progress BEFORE processing (so UI updates)
-        updateProgress(i + 1, state.csvData.length, 'Processing');
+        updateProgress(i + 1, state.csvData.length, `Processing ${exportMode}`);
 
         // PERFORMANCE: Allow UI to breathe (longer delay for high-res images)
         await sleep(100);
 
         // PERFORMANCE: Clear canvas instead of creating new one
-        fCtx.clearRect(0, 0, nativeWidth, nativeHeight);
+        fCtx.clearRect(0, 0, targetWidth, targetHeight);
 
-        // 1. Draw the high-res template at native resolution
-        fCtx.drawImage(state.templateImage, 0, 0, nativeWidth, nativeHeight);
+        // 1. Draw the template at target resolution
+        fCtx.drawImage(state.templateImage, 0, 0, targetWidth, targetHeight);
 
         // 2. Calculate SCALED font size and CENTER coordinates
         const finalFontSize = Math.round(fontSize * scaleFactor);
@@ -480,7 +530,7 @@ async function generateBatch() {
 
         // PERFORMANCE: Convert to blob (memory-efficient, not base64)
         const blob = await new Promise(resolve => {
-            finalCanvas.toBlob(resolve, 'image/png', 1.0);
+            finalCanvas.toBlob(resolve, 'image/png', compressionQuality);
         });
 
         // Strict filename sanitization
